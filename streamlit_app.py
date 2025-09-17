@@ -1,27 +1,21 @@
+# streamlit_app.py
 import streamlit as st
+from streamlit_option_menu import option_menu
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
 import pandas as pd
+import numpy as np
 from sklearn.metrics import confusion_matrix
 
-# Import all other pages
-import prediction_page
-import insights_page
-import explainability_page
-import forecasting_page
-import chatbot_page
+# Load your dataset
+@st.cache_data
+def load_data():
+    return pd.read_csv("commodity_data.csv")
 
-# Load your data (adjust path if needed)
-df = pd.read_csv("commodity_data.csv")  
+df = load_data()
+
 st.set_page_config(page_title="📊 Commodity Dashboard", layout="wide")
 
-# --- Custom CSS ---
-with open("style.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-# --- Sidebar Navigation ---
-from streamlit_option_menu import option_menu
 with st.sidebar:
     choice = option_menu(
         "Navigation",
@@ -31,12 +25,16 @@ with st.sidebar:
         default_index=0,
     )
 
-# --- Routing ---
+# ---------------- HOME ----------------
 if choice == "Home":
     st.title("📊 Commodity Price Dashboard")
-    st.write("Explore commodity trends, correlations, and performance insights.")
+    st.write("Welcome! Navigate using the sidebar to explore insights, forecasts, predictions, and explanations.")
 
-    # ---------------- LINE PLOTS ----------------
+# ---------------- EXPLAINABILITY ----------------
+elif choice == "Explainability":
+    st.title("🔍 Explainability Dashboard")
+
+    # LINE PLOTS
     st.subheader("📈 Commodity Price Index Trends (Jan–Mar 2025)")
     fig, ax = plt.subplots(figsize=(12, 6))
     for commodity in df["Commodity"].unique():
@@ -44,13 +42,10 @@ if choice == "Home":
         ax.plot(["Jan_2025", "Feb_2025", "Mar_2025"],
                 subset[["Jan_2025", "Feb_2025", "Mar_2025"]].values.flatten(),
                 marker="o", label=commodity)
-    ax.set_title("Commodity Price Trends")
-    ax.set_xlabel("Month")
-    ax.set_ylabel("Index Value")
     ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
     st.pyplot(fig)
 
-    # ---------------- BAR PLOTS ----------------
+    # BAR PLOTS
     st.subheader("📊 Percentage Change: Jan → Feb 2025")
     fig, ax = plt.subplots(figsize=(12, 6))
     df_sorted = df.sort_values("Change_Feb", ascending=False)
@@ -63,34 +58,31 @@ if choice == "Home":
     sns.barplot(x="Change_Mar", y="Commodity", data=df_sorted, palette="magma", ax=ax)
     st.pyplot(fig)
 
-    # ---------------- CORRELATION HEATMAP ----------------
+    # CORRELATION HEATMAP
     st.subheader("🔗 Correlation Heatmap")
     fig, ax = plt.subplots(figsize=(8, 6))
     sns.heatmap(df.drop(columns=["Commodity"]).corr(), annot=True, cmap="coolwarm", ax=ax)
     st.pyplot(fig)
 
-    # ---------------- CONFUSION MATRIX (Example) ----------------
+    # CONFUSION MATRIX
     st.subheader("📉 Confusion Matrix (Example)")
-    st.markdown("This is a sample confusion matrix (replace with real model outputs later).")
-
     y_true = np.random.choice([0, 1], size=20)
     y_pred = np.random.choice([0, 1], size=20)
     cm = confusion_matrix(y_true, y_pred)
-
     fig, ax = plt.subplots(figsize=(5, 4))
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False, ax=ax)
-    ax.set_title("Confusion Matrix")
-    ax.set_xlabel("Predicted")
-    ax.set_ylabel("Actual")
     st.pyplot(fig)
 
-elif choice == "Prediction":
-    prediction_page.show()
-elif choice == "Insights":
-    insights_page.show()
-elif choice == "Explainability":
-    explainability_page.show()
-elif choice == "Forecasting":
-    forecasting_page.show()
-elif choice == "Chatbot":
-    chatbot_page.show()
+    # FEATURE IMPORTANCE
+    st.subheader("🔥 Feature Importance (Example)")
+    importance = {"Jan_2025": 0.4, "Feb_2025": 0.35, "Change_Feb": 0.25}
+    fig, ax = plt.subplots(figsize=(8, 4))
+    sns.barplot(x=list(importance.keys()), y=list(importance.values()), ax=ax, palette="coolwarm")
+    st.pyplot(fig)
+
+    # RESIDUALS
+    st.subheader("🔍 Residual Distribution (Example)")
+    residuals = np.random.normal(0, 1, 100)
+    fig, ax = plt.subplots(figsize=(8, 4))
+    sns.histplot(residuals, kde=True, bins=20, color="purple", ax=ax)
+    st.pyplot(fig)
