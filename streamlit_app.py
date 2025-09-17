@@ -26,48 +26,62 @@ with st.sidebar:
     )
 
 # ---------------- HOME ----------------
-# ---------------- HOME ----------------
+# ---------------- HOME PAGE ----------------
 if choice == "Home":
     st.title("📊 Commodity Price Dashboard")
     st.write("Welcome! Navigate using the sidebar to explore insights, forecasts, predictions, and explanations.")
-    
-    df.columns = df.columns.str.strip()  # clean column names
 
-    if "Commodity" in df.columns:
-        # --- LINE PLOT ---
-        plt.figure(figsize=(12, 6))
+    # ---------------- LOAD AND CLEAN DATA ----------------
+    df.columns = df.columns.str.strip().str.replace(" ", "_")  # remove spaces, replace with underscores
+    st.write("Columns detected:", df.columns.tolist())
+    st.dataframe(df.head())  # show first 5 rows for verification
+
+    required_cols = ["Commodity", "Jan_2025", "Feb_2025", "Mar_2025", "Change_Feb", "Change_Mar"]
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        st.error(f"Missing required columns in CSV: {missing_cols}")
+    else:
+        # ---------------- LINE PLOT ----------------
+        st.subheader("📈 Commodity Price Index Trends (Jan–Mar 2025)")
+        fig, ax = plt.subplots(figsize=(12, 6))
         for commodity in df["Commodity"].unique():
             subset = df[df["Commodity"] == commodity]
-            plt.plot(["Jan_2025", "Feb_2025", "Mar_2025"],
-                     subset[["Jan_2025", "Feb_2025", "Mar_2025"]].values.flatten(),
-                     marker="o", label=commodity)
-        plt.title("Commodity Price Index Trends (Jan–Mar 2025)")
-        plt.xlabel("Month")
-        plt.ylabel("Index Value")
-        plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
-        plt.tight_layout()
-        st.pyplot(plt)
+            ax.plot(
+                ["Jan_2025", "Feb_2025", "Mar_2025"],
+                subset[["Jan_2025", "Feb_2025", "Mar_2025"]].values.flatten(),
+                marker="o",
+                label=commodity
+            )
+        ax.set_xlabel("Month")
+        ax.set_ylabel("Index Value")
+        ax.set_title("Commodity Price Index Trends (Jan–Mar 2025)")
+        ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+        st.pyplot(fig)
 
-        # --- BAR PLOTS ---
+        # ---------------- BAR PLOTS ----------------
         st.subheader("📊 Percentage Change: Jan → Feb 2025")
         fig, ax = plt.subplots(figsize=(12, 6))
         df_sorted = df.sort_values("Change_Feb", ascending=False)
         sns.barplot(x="Change_Feb", y="Commodity", data=df_sorted, palette="viridis", ax=ax)
+        ax.set_xlabel("Change (%)")
+        ax.set_ylabel("Commodity")
         st.pyplot(fig)
 
         st.subheader("📊 Percentage Change: Feb → Mar 2025")
         fig, ax = plt.subplots(figsize=(12, 6))
         df_sorted = df.sort_values("Change_Mar", ascending=False)
         sns.barplot(x="Change_Mar", y="Commodity", data=df_sorted, palette="magma", ax=ax)
+        ax.set_xlabel("Change (%)")
+        ax.set_ylabel("Commodity")
         st.pyplot(fig)
 
-        # --- CORRELATION HEATMAP ---
+        # ---------------- CORRELATION HEATMAP ----------------
         st.subheader("🔗 Correlation Heatmap")
         fig, ax = plt.subplots(figsize=(8, 6))
         sns.heatmap(df.drop(columns=["Commodity"]).corr(), annot=True, cmap="coolwarm", ax=ax)
         st.pyplot(fig)
 
-        # --- CONFUSION MATRIX ---
+        # ---------------- CONFUSION MATRIX EXAMPLE ----------------
         st.subheader("📉 Confusion Matrix (Example)")
         y_true = np.random.choice([0, 1], size=20)
         y_pred = np.random.choice([0, 1], size=20)
@@ -78,16 +92,3 @@ if choice == "Home":
         ax.set_xlabel("Predicted")
         ax.set_ylabel("Actual")
         st.pyplot(fig)
-
-# --- OTHER PAGES ---
-elif choice == "Prediction":
-    prediction_page.show()
-elif choice == "Insights":
-    insights_page.show()
-elif choice == "Explainability":
-    explainability_page.show()
-elif choice == "Forecasting":
-    forecasting_page.show()
-elif choice == "Chatbot":
-    chatbot_page.show()
-
