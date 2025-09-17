@@ -44,30 +44,22 @@ st.markdown(f"<style>{CUSTOM_CSS}</style>", unsafe_allow_html=True)
 def load_and_clean_data(data_string):
     """Loads and cleans the data from the string."""
     try:
-        df = pd.read_csv(io.StringIO(data_string), on_bad_lines='skip', dtype={'Commodity Group': str})
+        # Explicitly tell pandas to use the first row as the header and the first column as the index
+        df = pd.read_csv(io.StringIO(data_string), header=0, index_col=0, on_bad_lines='skip')
         
-        # We find the target row using the original column name first.
         target_row_name = "All commodity Group_2024"
-        df_filtered = df[df['Commodity Group'].str.strip() == target_row_name]
-
-        if df_filtered.empty:
+        if target_row_name not in df.index:
             st.error(f"Error: The row '{target_row_name}' was not found in the data.")
             st.write("Available rows in the data:")
-            st.write(df['Commodity Group'].tolist())
+            st.write(df.index.tolist())
             return pd.DataFrame()
         
-        # Then, we clean the column names for the rest of the application.
+        # Rename columns to be consistent for later use
         df.columns = [c.replace(' ', '_').replace('.', '').replace('/', '_').replace('-', '_') for c in df.columns]
-
-        target_row_index = df_filtered.index[0]
-        data_start_row = target_row_index
-        price_cols = [col for col in df.columns if '2018' in col or '2025' in col]
-        all_commodities_df = df.iloc[data_start_row:]
-        all_commodities_df = all_commodities_df[['Commodity_Group'] + price_cols]
-        all_commodities_df.rename(columns={'January_2018': '2018-01-01', 'Jan_2025': '2025-01-01', 'February_2025': '2025-02-01', 'March_2025': '2025-03-01'}, inplace=True)
-        all_commodities_df.set_index('Commodity_Group', inplace=True)
-        all_commodities_df = all_commodities_df.apply(pd.to_numeric, errors='coerce').dropna(how='all')
-        return all_commodities_df
+        
+        # The DataFrame is now correctly loaded and indexed, we can return it directly
+        return df
+        
     except Exception as e:
         st.error(f"Error loading and cleaning data: {e}")
         return pd.DataFrame()
