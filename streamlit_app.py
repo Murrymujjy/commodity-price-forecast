@@ -7,6 +7,13 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import confusion_matrix
 
+
+import prediction_page
+import insights_page
+import explainability_page
+import forecasting_page
+import chatbot_page
+
 # ---------------- LOAD DATA ----------------
 @st.cache_data
 def load_data():
