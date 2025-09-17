@@ -127,12 +127,13 @@ if choice == "Home":
 
 # ---------------- OTHER PAGES PLACEHOLDERS ----------------
 elif choice == "Prediction":
-    st.info("Prediction page coming soon!")
+    prediction_page.show()
 elif choice == "Insights":
-    st.info("Insights page coming soon!")
+    insights_page.show()
 elif choice == "Explainability":
-    st.info("Explainability page coming soon!")
+    explainability_page.show()
 elif choice == "Forecasting":
-    st.info("Forecasting page coming soon!")
+    forecasting_page.show()
 elif choice == "Chatbot":
-    st.info("Chatbot page coming soon!")
+    chatbot_page.show()
+
