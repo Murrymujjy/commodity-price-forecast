@@ -63,9 +63,8 @@ if choice == "Home":
             for commodity in df["Commodity"].unique():
                 subset = df[df["Commodity"] == commodity]
                 if subset.empty:
-                    continue  # skip commodities with no data
-
-                # Take first row values to match x-axis length
+                    continue
+                # Take first row values to match x-axis
                 y_values = subset[["Jan_2025", "Feb_2025", "Mar_2025"]].iloc[0].values
                 ax.plot(
                     ["Jan_2025", "Feb_2025", "Mar_2025"],
@@ -79,10 +78,12 @@ if choice == "Home":
             ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
             st.pyplot(fig)
 
-            # ---------------- BAR PLOTS ----------------
+            # ---------------- AGGREGATED BAR PLOTS ----------------
             st.subheader("📊 Percentage Change: Jan → Feb 2025")
+            # Aggregate multiple rows per commodity
+            df_bar = df.groupby("Commodity")[["Change_Feb", "Change_Mar"]].mean().reset_index()
             fig, ax = plt.subplots(figsize=(12, 6))
-            df_sorted = df.sort_values("Change_Feb", ascending=False)
+            df_sorted = df_bar.sort_values("Change_Feb", ascending=False)
             sns.barplot(x="Change_Feb", y="Commodity", data=df_sorted, palette="viridis", ax=ax)
             ax.set_xlabel("Change (%)")
             ax.set_ylabel("Commodity")
@@ -90,7 +91,7 @@ if choice == "Home":
 
             st.subheader("📊 Percentage Change: Feb → Mar 2025")
             fig, ax = plt.subplots(figsize=(12, 6))
-            df_sorted = df.sort_values("Change_Mar", ascending=False)
+            df_sorted = df_bar.sort_values("Change_Mar", ascending=False)
             sns.barplot(x="Change_Mar", y="Commodity", data=df_sorted, palette="magma", ax=ax)
             ax.set_xlabel("Change (%)")
             ax.set_ylabel("Commodity")
@@ -99,6 +100,7 @@ if choice == "Home":
             # ---------------- CORRELATION HEATMAP ----------------
             st.subheader("🔗 Correlation Heatmap")
             fig, ax = plt.subplots(figsize=(8, 6))
+            # Drop Commodity column for correlation
             sns.heatmap(df.drop(columns=["Commodity"]).corr(), annot=True, cmap="coolwarm", ax=ax)
             st.pyplot(fig)
 
@@ -113,6 +115,7 @@ if choice == "Home":
             ax.set_xlabel("Predicted")
             ax.set_ylabel("Actual")
             st.pyplot(fig)
+
 
 # ---------------- OTHER PAGES PLACEHOLDERS ----------------
 elif choice == "Prediction":
