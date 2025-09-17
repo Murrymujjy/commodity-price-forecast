@@ -45,14 +45,19 @@ def load_and_clean_data(data_string):
     """Loads and cleans the data from the string."""
     try:
         df = pd.read_csv(io.StringIO(data_string), on_bad_lines='skip', dtype={'Commodity Group': str})
-        df.columns = [c.replace(' ', '_').replace('.', '').replace('/', '_').replace('-', '_') for c in df.columns]
-
-        # The key fix: Look for "All commodity Group_2024" which is the correct string
-        df_filtered = df[df['Commodity_Group'].str.contains("All commodity Group_2024", na=False)]
         
+        # We find the target row using the original column name first.
+        target_row_name = "All commodity Group_2024"
+        df_filtered = df[df['Commodity Group'].str.strip() == target_row_name]
+
         if df_filtered.empty:
-            st.error("Error: The row 'All commodity Group_2024' was not found in the data.")
+            st.error(f"Error: The row '{target_row_name}' was not found in the data.")
+            st.write("Available rows in the data:")
+            st.write(df['Commodity Group'].tolist())
             return pd.DataFrame()
+        
+        # Then, we clean the column names for the rest of the application.
+        df.columns = [c.replace(' ', '_').replace('.', '').replace('/', '_').replace('-', '_') for c in df.columns]
 
         target_row_index = df_filtered.index[0]
         data_start_row = target_row_index
@@ -288,11 +293,11 @@ elif page == "🧠 AI Chat":
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
     if prompt := st.chat_input("Ask a question about the forecast..."):
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
+        with st.spinner("Thinking..."):
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("assistant"):
                 llm_response = get_llm_response(prompt)
                 st.markdown(llm_response)
-        st.session_state.messages.append({"role": "assistant", "content": llm_response})
+            st.session_state.messages.append({"role": "assistant", "content": llm_response})
