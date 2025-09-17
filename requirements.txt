@@ -3,3 +3,8 @@ pandas
 plotly
 numpy
 requests
+streamlit-option-menu
+seaborn 
+xgboost 
+joblib 
+huggingface-hub
