@@ -79,23 +79,30 @@ if choice == "Home":
             st.pyplot(fig)
 
             # ---------------- AGGREGATED BAR PLOTS ----------------
-            st.subheader("📊 Percentage Change: Jan → Feb 2025")
-            # Aggregate multiple rows per commodity
-            df_bar = df.groupby("Commodity")[["Change_Feb", "Change_Mar"]].mean().reset_index()
-            fig, ax = plt.subplots(figsize=(12, 6))
-            df_sorted = df_bar.sort_values("Change_Feb", ascending=False)
-            sns.barplot(x="Change_Feb", y="Commodity", data=df_sorted, palette="viridis", ax=ax)
-            ax.set_xlabel("Change (%)")
-            ax.set_ylabel("Commodity")
-            st.pyplot(fig)
+st.subheader("📊 Percentage Change: Jan → Feb 2025")
+# Convert to numeric
+for col in ["Change_Feb", "Change_Mar"]:
+    df[col] = pd.to_numeric(df[col], errors="coerce")
+# Drop rows where both changes are NaN
+df = df.dropna(subset=["Change_Feb", "Change_Mar"], how="all")
 
-            st.subheader("📊 Percentage Change: Feb → Mar 2025")
-            fig, ax = plt.subplots(figsize=(12, 6))
-            df_sorted = df_bar.sort_values("Change_Mar", ascending=False)
-            sns.barplot(x="Change_Mar", y="Commodity", data=df_sorted, palette="magma", ax=ax)
-            ax.set_xlabel("Change (%)")
-            ax.set_ylabel("Commodity")
-            st.pyplot(fig)
+# Aggregate multiple rows per commodity
+df_bar = df.groupby("Commodity")[["Change_Feb", "Change_Mar"]].mean().reset_index()
+
+fig, ax = plt.subplots(figsize=(12, 6))
+df_sorted = df_bar.sort_values("Change_Feb", ascending=False)
+sns.barplot(x="Change_Feb", y="Commodity", data=df_sorted, palette="viridis", ax=ax)
+ax.set_xlabel("Change (%)")
+ax.set_ylabel("Commodity")
+st.pyplot(fig)
+
+st.subheader("📊 Percentage Change: Feb → Mar 2025")
+fig, ax = plt.subplots(figsize=(12, 6))
+df_sorted = df_bar.sort_values("Change_Mar", ascending=False)
+sns.barplot(x="Change_Mar", y="Commodity", data=df_sorted, palette="magma", ax=ax)
+ax.set_xlabel("Change (%)")
+ax.set_ylabel("Commodity")
+st.pyplot(fig)
 
             # ---------------- CORRELATION HEATMAP ----------------
             st.subheader("🔗 Correlation Heatmap")
