@@ -30,7 +30,7 @@ if choice == "Home":
     st.title("📊 Commodity Price Dashboard")
     st.write("Welcome! Navigate using the sidebar to explore insights, forecasts, predictions, and explanations.")
     
-    st.title("📊 Commodity Price Dashboard")
+    # st.title("📊 Commodity Price Dashboard")
     st.write("Explore commodity trends, correlations, and performance insights.")
 
     # ---------------- LINE PLOTS ----------------
