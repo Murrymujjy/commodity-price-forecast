@@ -33,6 +33,79 @@ elif choice == "Prediction":
 elif choice == "Insights":
     insights_page.show()
 elif choice == "Explainability":
+
+
+# ---------------- LINE PLOTS ----------------
+    st.subheader("📈 Commodity Price Index Trends (Jan–Mar 2025)")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    for commodity in df["Commodity"].unique():
+        subset = df[df["Commodity"] == commodity]
+        ax.plot(["Jan_2025", "Feb_2025", "Mar_2025"],
+                subset[["Jan_2025", "Feb_2025", "Mar_2025"]].values.flatten(),
+                marker="o", label=commodity)
+    ax.set_title("Commodity Price Trends")
+    ax.set_xlabel("Month")
+    ax.set_ylabel("Index Value")
+    ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+    st.pyplot(fig)
+
+    # ---------------- BAR PLOTS ----------------
+    st.subheader("📊 Percentage Change: Jan → Feb 2025")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    df_sorted = df.sort_values("Change_Feb", ascending=False)
+    sns.barplot(x="Change_Feb", y="Commodity", data=df_sorted, palette="viridis", ax=ax)
+    ax.set_title("Percentage Change (Jan → Feb 2025)")
+    ax.set_xlabel("Change (%)")
+    ax.set_ylabel("Commodity")
+    st.pyplot(fig)
+
+    st.subheader("📊 Percentage Change: Feb → Mar 2025")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    df_sorted = df.sort_values("Change_Mar", ascending=False)
+    sns.barplot(x="Change_Mar", y="Commodity", data=df_sorted, palette="magma", ax=ax)
+    ax.set_title("Percentage Change (Feb → Mar 2025)")
+    ax.set_xlabel("Change (%)")
+    ax.set_ylabel("Commodity")
+    st.pyplot(fig)
+
+    # ---------------- CORRELATION HEATMAP ----------------
+    st.subheader("🔗 Correlation Heatmap")
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.heatmap(df.drop(columns=["Commodity"]).corr(), annot=True, cmap="coolwarm", ax=ax)
+    ax.set_title("Correlation Between Features")
+    st.pyplot(fig)
+
+    # ---------------- CONFUSION MATRIX (Example) ----------------
+    st.subheader("📉 Confusion Matrix (Example)")
+    st.markdown("Here’s a sample confusion matrix — replace with real predictions when model is connected.")
+
+    # Example: binary classification (good vs bad commodity performance)
+    y_true = np.random.choice([0, 1], size=20)   # replace with real labels
+    y_pred = np.random.choice([0, 1], size=20)   # replace with model predictions
+    cm = confusion_matrix(y_true, y_pred)
+
+    fig, ax = plt.subplots(figsize=(5, 4))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False, ax=ax)
+    ax.set_title("Confusion Matrix")
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Actual")
+    st.pyplot(fig)
+
+    # ---------------- FEATURE IMPORTANCE (Placeholder) ----------------
+    st.subheader("🔥 Feature Importance (Example)")
+    fig, ax = plt.subplots(figsize=(8, 4))
+    importance = {"Jan_2025": 0.4, "Feb_2025": 0.35, "Change_Feb": 0.25}
+    sns.barplot(x=list(importance.keys()), y=list(importance.values()), ax=ax, palette="coolwarm")
+    ax.set_title("Feature Importance")
+    st.pyplot(fig)
+
+    # ---------------- RESIDUAL PLOT (Placeholder) ----------------
+    st.subheader("🔍 Residual Analysis (Example)")
+    residuals = np.random.normal(0, 1, 100)  # replace with real residuals
+    fig, ax = plt.subplots(figsize=(8, 4))
+    sns.histplot(residuals, kde=True, ax=ax, bins=20, color="purple")
+    ax.set_title("Residual Distribution")
+    st.pyplot(fig)
     explainability_page.show()
 elif choice == "Forecasting":
     forecasting_page.show()
