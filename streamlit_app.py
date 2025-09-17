@@ -13,8 +13,7 @@ import forecasting_page
 import chatbot_page
 
 # Load your data (adjust path if needed)
-df = pd.read_csv("your_dataset.csv")  # <-- replace with actual source
-
+df = pd.read_csv("commodity_data.csv")  
 st.set_page_config(page_title="📊 Commodity Dashboard", layout="wide")
 
 # --- Custom CSS ---
