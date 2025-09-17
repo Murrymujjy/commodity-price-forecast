@@ -39,6 +39,7 @@ with st.sidebar:
     )
 
 # ---------------- HOME PAGE ----------------
+# ---------------- HOME PAGE ----------------
 if choice == "Home":
     st.title("📊 Commodity Price Dashboard")
     st.write("Welcome! Navigate using the sidebar to explore insights, forecasts, predictions, and explanations.")
@@ -61,9 +62,14 @@ if choice == "Home":
             fig, ax = plt.subplots(figsize=(12, 6))
             for commodity in df["Commodity"].unique():
                 subset = df[df["Commodity"] == commodity]
+                if subset.empty:
+                    continue  # skip commodities with no data
+
+                # Take first row values to match x-axis length
+                y_values = subset[["Jan_2025", "Feb_2025", "Mar_2025"]].iloc[0].values
                 ax.plot(
                     ["Jan_2025", "Feb_2025", "Mar_2025"],
-                    subset[["Jan_2025", "Feb_2025", "Mar_2025"]].values.flatten(),
+                    y_values,
                     marker="o",
                     label=commodity
                 )
