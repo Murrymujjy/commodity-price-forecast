@@ -1,5 +1,4 @@
 import streamlit as st
-import requests
 import pandas as pd
 import json
 import plotly.graph_objects as go
@@ -7,6 +6,7 @@ from datetime import datetime
 import numpy as np
 import plotly.express as px
 import io
+import requests
 
 # --- Page Config
 st.set_page_config(
@@ -46,7 +46,15 @@ def load_and_clean_data(data_string):
     try:
         df = pd.read_csv(io.StringIO(data_string), on_bad_lines='skip', dtype={'Commodity Group': str})
         df.columns = [c.replace(' ', '_').replace('.', '').replace('/', '_').replace('-', '_') for c in df.columns]
-        target_row_index = df[df['Commodity_Group'].str.contains("All commodity Group", na=False)].index[0]
+
+        # The key fix: Look for "All commodity Group_2024" which is the correct string
+        df_filtered = df[df['Commodity_Group'].str.contains("All commodity Group_2024", na=False)]
+        
+        if df_filtered.empty:
+            st.error("Error: The row 'All commodity Group_2024' was not found in the data.")
+            return pd.DataFrame()
+
+        target_row_index = df_filtered.index[0]
         data_start_row = target_row_index
         price_cols = [col for col in df.columns if '2018' in col or '2025' in col]
         all_commodities_df = df.iloc[data_start_row:]
@@ -59,24 +67,44 @@ def load_and_clean_data(data_string):
         st.error(f"Error loading and cleaning data: {e}")
         return pd.DataFrame()
 
-def get_forecast(commodity_group, forecast_date):
-    """Fetches the forecast from the Flask API."""
-    # NOTE: This assumes a Flask API is running locally.
-    FORECAST_API_URL = 'http://127.0.0.1:5000/predict'
-    try:
-        request_data = {
-            "date": forecast_date,
-            "commodity_group": commodity_group
-        }
-        response = requests.post(FORECAST_API_URL, json=request_data)
-        response.raise_for_status()
-        forecast_data = response.json()
-        st.session_state['forecast_data'] = forecast_data
-    except requests.exceptions.ConnectionError:
-        st.error("Connection Error: Please ensure your Flask API is running.")
-    except requests.exceptions.RequestException as e:
-        st.error(f"An error occurred while making the API request: {e}")
-        st.info(f"Response from API: {response.text}")
+# --- New Function to perform in-app forecasting ---
+def perform_in_app_forecast(commodity_data, forecast_date):
+    """
+    Performs a simple linear regression forecast on the provided data.
+    This replaces the external API call.
+    """
+    # Create a DataFrame from the historical data
+    historical_df = pd.DataFrame(commodity_data).T
+    historical_df.columns = ['price']
+    historical_df.index = pd.to_datetime(historical_df.index)
+    historical_df = historical_df.sort_index()
+
+    # Create numerical representation for the dates
+    historical_df['ordinal_date'] = historical_df.index.map(datetime.toordinal)
+    forecast_date_ordinal = forecast_date.toordinal()
+
+    # Get the latest data points for a more accurate short-term trend
+    n_points = 12  # Use the last 12 months for the trend calculation
+    df_for_model = historical_df.tail(n_points)
+    X = df_for_model[['ordinal_date']]
+    y = df_for_model['price']
+    
+    # Calculate simple linear regression coefficients (slope and intercept)
+    # Using numpy to avoid external dependencies like scikit-learn
+    X_mean = np.mean(X)
+    y_mean = np.mean(y)
+    numerator = np.sum((X - X_mean) * (y - y_mean))
+    denominator = np.sum((X - X_mean)**2)
+    slope = numerator / denominator
+    intercept = y_mean - slope * X_mean
+
+    # Predict the value for the forecast date
+    forecasted_price = slope.iloc[0] * forecast_date_ordinal + intercept.iloc[0]
+
+    return {
+        "forecasted_price": forecasted_price,
+        "historical_data": historical_df.reset_index().rename(columns={'index': 'date'}).to_dict('records')
+    }
 
 def get_llm_response(prompt_text):
     """Calls the LLM API with the given prompt and returns the text response."""
@@ -85,7 +113,7 @@ def get_llm_response(prompt_text):
     LLM_API_KEY = "" # Leave as-is, will be populated by Canvas
     
     if 'forecast_data' not in st.session_state or not st.session_state.forecast_data:
-        return "Sorry, I can't provide a data-driven analysis. Please go to the **Forecast Dashboard** page and generate a forecast first."
+        return "Sorry, I can't provide a data-driven analysis. Please go to the **Dashboard** page and generate a forecast first."
 
     forecast_data = st.session_state.forecast_data
     forecasted_price = forecast_data.get('forecasted_price')
@@ -179,7 +207,8 @@ elif page == "📊 Dashboard":
         
         if st.button("Get Forecast", key='forecast_button'):
             with st.spinner("Analyzing data and generating forecast..."):
-                get_forecast(selected_commodity, forecast_date_str)
+                selected_data = all_commodities_df.loc[selected_commodity].to_dict()
+                st.session_state['forecast_data'] = perform_in_app_forecast(selected_data, forecast_date)
     
     if 'forecast_data' in st.session_state:
         forecast_data = st.session_state['forecast_data']
