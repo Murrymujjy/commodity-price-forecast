@@ -1,10 +1,9 @@
 streamlit
-pandas
-plotly
-numpy
-requests
 streamlit-option-menu
-seaborn 
-xgboost 
-joblib 
+plotly
+seaborn
+matplotlib
+xgboost
+joblib
+pandas
 huggingface-hub
