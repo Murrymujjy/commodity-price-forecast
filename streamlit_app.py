@@ -52,6 +52,7 @@ if choice == "Home":
         st.write("Columns detected:", df.columns.tolist())
         st.dataframe(df.head())
 
+        # Required columns
         required_cols = ["Commodity", "Jan_2025", "Feb_2025", "Mar_2025", "Change_Feb", "Change_Mar"]
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
@@ -79,35 +80,36 @@ if choice == "Home":
             st.pyplot(fig)
 
             # ---------------- AGGREGATED BAR PLOTS ----------------
-st.subheader("📊 Percentage Change: Jan → Feb 2025")
-# Convert to numeric
-for col in ["Change_Feb", "Change_Mar"]:
-    df[col] = pd.to_numeric(df[col], errors="coerce")
-# Drop rows where both changes are NaN
-df = df.dropna(subset=["Change_Feb", "Change_Mar"], how="all")
+            # Convert change columns to numeric
+            for col in ["Change_Feb", "Change_Mar"]:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+            # Drop rows where both changes are NaN
+            df = df.dropna(subset=["Change_Feb", "Change_Mar"], how="all")
 
-# Aggregate multiple rows per commodity
-df_bar = df.groupby("Commodity")[["Change_Feb", "Change_Mar"]].mean().reset_index()
+            # Aggregate multiple rows per commodity
+            df_bar = df.groupby("Commodity")[["Change_Feb", "Change_Mar"]].mean().reset_index()
 
-fig, ax = plt.subplots(figsize=(12, 6))
-df_sorted = df_bar.sort_values("Change_Feb", ascending=False)
-sns.barplot(x="Change_Feb", y="Commodity", data=df_sorted, palette="viridis", ax=ax)
-ax.set_xlabel("Change (%)")
-ax.set_ylabel("Commodity")
-st.pyplot(fig)
+            # Jan → Feb
+            st.subheader("📊 Percentage Change: Jan → Feb 2025")
+            fig, ax = plt.subplots(figsize=(12, 6))
+            df_sorted = df_bar.sort_values("Change_Feb", ascending=False)
+            sns.barplot(x="Change_Feb", y="Commodity", data=df_sorted, palette="viridis", ax=ax)
+            ax.set_xlabel("Change (%)")
+            ax.set_ylabel("Commodity")
+            st.pyplot(fig)
 
-st.subheader("📊 Percentage Change: Feb → Mar 2025")
-fig, ax = plt.subplots(figsize=(12, 6))
-df_sorted = df_bar.sort_values("Change_Mar", ascending=False)
-sns.barplot(x="Change_Mar", y="Commodity", data=df_sorted, palette="magma", ax=ax)
-ax.set_xlabel("Change (%)")
-ax.set_ylabel("Commodity")
-st.pyplot(fig)
+            # Feb → Mar
+            st.subheader("📊 Percentage Change: Feb → Mar 2025")
+            fig, ax = plt.subplots(figsize=(12, 6))
+            df_sorted = df_bar.sort_values("Change_Mar", ascending=False)
+            sns.barplot(x="Change_Mar", y="Commodity", data=df_sorted, palette="magma", ax=ax)
+            ax.set_xlabel("Change (%)")
+            ax.set_ylabel("Commodity")
+            st.pyplot(fig)
 
             # ---------------- CORRELATION HEATMAP ----------------
             st.subheader("🔗 Correlation Heatmap")
             fig, ax = plt.subplots(figsize=(8, 6))
-            # Drop Commodity column for correlation
             sns.heatmap(df.drop(columns=["Commodity"]).corr(), annot=True, cmap="coolwarm", ax=ax)
             st.pyplot(fig)
 
@@ -122,7 +124,6 @@ st.pyplot(fig)
             ax.set_xlabel("Predicted")
             ax.set_ylabel("Actual")
             st.pyplot(fig)
-
 
 # ---------------- OTHER PAGES PLACEHOLDERS ----------------
 elif choice == "Prediction":
