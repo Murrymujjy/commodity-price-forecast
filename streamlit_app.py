@@ -34,18 +34,28 @@ if choice == "Home":
     st.write("Explore commodity trends, correlations, and performance insights.")
 
     # ---------------- LINE PLOTS ----------------
-    st.subheader("📈 Commodity Price Index Trends (Jan–Mar 2025)")
-    fig, ax = plt.subplots(figsize=(12, 6))
+# Ensure column names are clean
+df.columns = df.columns.str.strip()
+
+if "Commodity" in df.columns:
+    plt.figure(figsize=(12, 6))
     for commodity in df["Commodity"].unique():
         subset = df[df["Commodity"] == commodity]
-        ax.plot(["Jan_2025", "Feb_2025", "Mar_2025"],
-                subset[["Jan_2025", "Feb_2025", "Mar_2025"]].values.flatten(),
-                marker="o", label=commodity)
-    ax.set_title("Commodity Price Trends")
-    ax.set_xlabel("Month")
-    ax.set_ylabel("Index Value")
-    ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
-    st.pyplot(fig)
+        plt.plot(["Jan_2025", "Feb_2025", "Mar_2025"],
+                 subset[["Jan_2025", "Feb_2025", "Mar_2025"]].values.flatten(),
+                 marker="o", label=commodity)
+    plt.title("Commodity Price Index Trends (Jan–Mar 2025)")
+    plt.xlabel("Month")
+    plt.ylabel("Index Value")
+    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+    plt.tight_layout()
+    st.pyplot(plt)
+else:
+    st.error("Column 'Commodity' not found in the CSV. Check the file and column names.")
+
+
+    
+
 
     # ---------------- BAR PLOTS ----------------
     st.subheader("📊 Percentage Change: Jan → Feb 2025")
