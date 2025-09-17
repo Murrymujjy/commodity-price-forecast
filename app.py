@@ -44,7 +44,7 @@ st.markdown(f"<style>{CUSTOM_CSS}</style>", unsafe_allow_html=True)
 def load_and_clean_data(data_string):
     """Loads and cleans the data from the string."""
     try:
-        df = pd.read_csv(io.StringIO(data_string), on_bad_lines='skip')
+        df = pd.read_csv(io.StringIO(data_string), on_bad_lines='skip', dtype={'Commodity Group': str})
         df.columns = [c.replace(' ', '_').replace('.', '').replace('/', '_').replace('-', '_') for c in df.columns]
         target_row_index = df[df['Commodity_Group'].str.contains("All commodity Group", na=False)].index[0]
         data_start_row = target_row_index
@@ -135,18 +135,31 @@ def get_llm_response(prompt_text):
 # --- Main App Logic ---
 st.title("Commodity Price Forecast")
 st.markdown("### Welcome to the Commodity Price Forecast App")
-st.markdown("Use the sidebar to navigate between the Dashboard and the AI Chat.")
 
 all_commodities_df = load_and_clean_data(COMMODITY_DATA)
 if all_commodities_df.empty:
     st.stop()
 
-# Use the sidebar to create "pages"
-page = st.sidebar.selectbox("Select a Page", ["Dashboard", "AI Chat"])
+# --- Sidebar Navigation ---
+st.sidebar.markdown("# Navigation")
+page = st.sidebar.selectbox(
+    "Select a Page", 
+    ["🏠 Home", "📊 Dashboard", "🧠 AI Chat"]
+)
 
-if page == "Dashboard":
-    # --- Dashboard Page Content ---
-    st.header("1. Forecasting Dashboard")
+if page == "🏠 Home":
+    st.header("Home Page")
+    st.markdown("This application provides a comprehensive analysis of commodity prices.")
+    st.markdown("Use the navigation on the left to explore the dashboard and chat with the AI assistant.")
+    st.markdown("---")
+    st.markdown("### Key Features:")
+    st.markdown("- **Interactive Dashboard:** Visualize historical price trends and see future forecasts.")
+    st.markdown("- **AI Chat:** Ask an expert bot questions about the forecast.")
+    st.markdown("---")
+    st.info("To get started, navigate to the **Dashboard** page.")
+
+elif page == "📊 Dashboard":
+    st.header("Forecasting Dashboard")
     with st.container():
         st.markdown("### User Inputs")
         col1, col2 = st.columns(2)
@@ -236,7 +249,7 @@ if page == "Dashboard":
         fig_comparison.update_layout(xaxis_title="Commodity Group", yaxis_title="Price Index", xaxis_tickangle=-45)
         st.plotly_chart(fig_comparison, use_container_width=True)
 
-elif page == "AI Chat":
+elif page == "🧠 AI Chat":
     # --- Chat Page Content ---
     st.header("Chat with the Analyst Bot")
     st.markdown("Ask the model questions about the commodity price forecast.")
