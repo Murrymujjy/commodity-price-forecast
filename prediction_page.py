@@ -2,13 +2,17 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-MODEL_PATH = "xgb_commodity_model.joblib"
+# MODEL_PATH = "xgb_commodity_model.joblib"
+
+model = joblib.load("xgb_commodity_model.joblib")
+print(model.feature_names_in_)
+
 
 def show():
     st.header("🔮 Prediction Page")
 
     try:
-        model = joblib.load(MODEL_PATH)
+        model = joblib.load(model)
     except:
         st.error("❌ Model not found. Please upload `xgb_commodity_model.joblib`.")
         return
